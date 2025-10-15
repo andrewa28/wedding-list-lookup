@@ -1,0 +1,126 @@
+// --- Arabic transliteration + helpers --------------------------------------
+const AR_MAP = {'ا':'a','أ':'a','إ':'e','آ':'a','ب':'b','ت':'t','ث':'th','ج':'g','ح':'h','خ':'kh','د':'d','ذ':'z','ر':'r','ز':'z','س':'s','ش':'sh','ص':'s','ض':'d','ط':'t','ظ':'z','ع':'a','غ':'gh','ف':'f','ق':'k','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ى':'a','ء':'','ؤ':'o','ئ':'e','ة':'a','ﻻ':'la','لا':'la','ٓ':'','ْ':'','ّ':'','َ':'a','ُ':'u','ِ':'e','ً':'an','ٌ':'un','ٍ':'en'};
+const AR_RE = /[\u0600-\u06FF]/;
+const toLatin = s => s.split('').map(c => AR_MAP[c] ?? c).join('');
+const normalize = s => s.toLowerCase()
+  .normalize('NFKD')
+  .replace(/[\u0300-\u036f]/g,'')
+  .replace(/[^a-z0-9\s'-]/g,' ')
+  .replace(/\s+/g,' ')
+  .trim();
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+// --- State ------------------------------------------------------------------
+let rows = [];
+let fuse = null;
+
+// --- Boot -------------------------------------------------------------------
+window.addEventListener('DOMContentLoaded', async () => {
+  const q = document.getElementById('q');
+  const result = document.getElementById('result');
+  const list = document.getElementById('list');
+  const showAllBtn = document.getElementById('showAll');
+  const clearBtn = document.getElementById('clear');
+
+  try {
+    await loadCsvFromUrl('./guests.csv?v=3');
+  } catch (e) {
+    console.error('Failed to load guests.csv', e);
+  }
+
+  q.addEventListener('input', () => handleSearch(q.value, result, list));
+  q.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ q.value=''; handleSearch('', result, list);} });
+  clearBtn.addEventListener('click', ()=>{ q.value=''; handleSearch('', result, list); q.focus(); });
+  showAllBtn.addEventListener('click', ()=> renderFullList(list));
+
+  if(rows.length){ renderFullList(list, {hide:true}); }
+});
+
+// --- CSV loader -------------------------------------------------------------
+function loadCsvFromUrl(url){
+  return new Promise((resolve, reject) => {
+    Papa.parse(url, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: ({data, errors}) => {
+        if(errors?.length) console.warn(errors);
+        if(!data?.length) return reject(new Error('CSV empty'));
+        bootstrapData(data);
+        resolve();
+      },
+      error: reject
+    });
+  });
+}
+
+function bootstrapData(data){
+  rows = data
+    .filter(r => r && (r.name || r.Name))
+    .map(r => {
+      const name = String(r.name || r.Name).trim();
+      const table = String(r.table || r.Table || r.table_number || '').trim();
+      return { 
+        name, 
+        table, 
+        _norm: normalize(name), 
+        _arAlt: normalize(toLatin(name)) 
+      };
+    });
+
+  // --- very forgiving Fuse setup ---
+  fuse = new Fuse(rows, {
+    includeScore: true,
+    shouldSort: true,
+    minMatchCharLength: 2,  // allow short fragments
+    threshold: 0.6,         // 0.6 = loose and forgiving
+    distance: 200,          // how far apart terms can be and still match
+    ignoreLocation: true,   // ignore position in string
+    keys: [
+      { name: 'name',  weight: 0.6 },
+      { name: '_norm', weight: 0.25 },
+      { name: '_arAlt',weight: 0.15 }
+    ]
+  });
+}
+
+// --- Search & list rendering -------------------------------------------------
+function handleSearch(query, resultEl, listEl){
+  const q = (AR_RE.test(query) ? toLatin(query) : query);
+  const qn = normalize(q);
+  if(!qn){
+    resultEl.style.display='none';
+    listEl.hidden = true;
+    return;
+  }
+
+  const hits = fuse ? fuse.search(qn) : [];
+  if(!hits.length){
+    resultEl.innerHTML = `<div>No close matches found. Try <button class="linklike" onclick="renderFullList(document.getElementById('list'));">viewing the full list</button>.</div>`;
+    resultEl.style.display='block';
+    listEl.hidden = true;
+    return;
+  }
+
+  const top = hits[0].item;
+  resultEl.innerHTML = `
+    <div>Welcome <span class="hitname">${escapeHtml(top.name)}</span> — your table is
+      <span class="tableno">${escapeHtml(top.table || '—')}</span>
+    </div>`;
+    // <div style="margin-top:6px; color:#666; font-size:13px">
+    //   (Showing best fuzzy match — keep typing for better accuracy)
+    // </div>`;
+  resultEl.style.display='block';
+  listEl.hidden = true;
+}
+
+function renderFullList(listEl, opts={}){
+  if(!rows.length){ listEl.hidden=true; return; }
+  const sorted = [...rows].sort((a,b)=> a.name.localeCompare(b.name));
+  listEl.innerHTML = `
+    <table>
+      <thead><tr><th style="width:70%">Guest</th><th>Table</th></tr></thead>
+      <tbody>${sorted.map(r=>`<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.table)}</td></tr>`).join('')}</tbody>
+    </table>`;
+  listEl.hidden = !!opts.hide;
+}

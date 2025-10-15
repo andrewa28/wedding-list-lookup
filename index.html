@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Find Your Table — Andrew & Sylvana</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="./style.css?v=2" />
+
+    <!-- Libs -->
+    <script defer src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <!-- App -->
+    <script defer src="./script.js?v=2"></script>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card">
+        <!-- LEFT: full-bleed image column -->
+        <div class="invite-side" role="img" aria-label="Andrew & Sylvana wedding invitation artwork"></div>
+
+        <!-- RIGHT: content column -->
+        <div class="content-side">
+          <header class="hero-copy">
+            <h1 class="names">Andrew &amp; Sylvana</h1>
+            <p class="subtitle">Find Your Table</p>
+          </header>
+
+          <label for="q" class="label">Search your name:</label>
+          <div class="search-row">
+            <input id="q" type="search" placeholder="e.g., Andrew Safwat / اندرو صفوت" autocomplete="off" />
+            <button id="clear" class="btn secondary" aria-label="Clear search">✕</button>
+          </div>
+
+          <div class="actions">
+            <button id="showAll" class="linklike">Can’t find it? Show the full list</button>
+          </div>
+
+          <div id="result" class="result" role="status" aria-live="polite"></div>
+          <div id="list" class="list" hidden></div>
+
+          <!-- <footer class="footnote">If your name is missing, please ask our team ♥</footer> -->
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

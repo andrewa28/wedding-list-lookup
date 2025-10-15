@@ -1,0 +1,94 @@
+:root{
+  /* Panel split and hero heights */
+  --left: 48%;           /* left image width on desktop */
+  --right: 52%;          /* right content width on desktop */
+  --hero-mobile: 200px;  /* height of image when stacked on phones */
+  --hero-desktop: 100%;  /* full column fill on desktop */
+
+  /* Colors */
+  --fg:#1f1f1f; --muted:#666; --accent:#8a4baf; --card:#f7f4f1; --shadow:0 10px 30px rgba(0,0,0,.10);
+}
+
+/* Base */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; color:var(--fg);
+  font-family:"Playfair Display", system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Naskh Arabic", serif;
+  background:#f5f4f2;
+}
+
+/* Center on page with a soft vignette */
+.wrap{
+  min-height:100%;
+  display:grid; place-items:center;
+  padding:20px;
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(0,0,0,.04), transparent 60%);
+}
+
+/* Card = two columns on desktop, stacked on mobile */
+.card{
+  width:min(980px, 100%);
+  display:grid;
+  grid-template-columns: var(--left) var(--right);
+  border-radius:24px;
+  overflow:hidden;
+  background:var(--card);
+  box-shadow:var(--shadow);
+}
+
+/* LEFT image column: fill completely, no gaps */
+.invite-side{
+  background: url('./assets/bg.jpg') center center / cover no-repeat;
+  min-height: var(--hero-mobile); /* visible when stacked */
+}
+
+/* RIGHT content */
+.content-side{
+  display:flex; flex-direction:column; justify-content:center;
+  padding:24px 28px;
+}
+
+.hero-copy{ padding:0 0 12px; text-align:left }
+.names{
+  font-family:"Great Vibes", cursive;
+  font-size:46px; margin:0 0 6px; letter-spacing:.5px;
+}
+.subtitle{ margin:0; font-weight:600; letter-spacing:.06em }
+
+.label{ display:block; font-weight:600; margin:10px 6px 8px }
+.search-row{ display:flex; gap:8px }
+input[type="search"]{
+  flex:1; padding:14px 16px; border-radius:14px; border:1px solid #ddd; font-size:16px;
+}
+.btn{ border:1px solid #ddd; background:#fff; padding:12px 14px; border-radius:12px; cursor:pointer }
+.btn.secondary{ background:#f7f7f7 }
+
+.actions{ display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:10px 4px 0 }
+.linklike{ background:none; border:none; padding:0; color:var(--accent); cursor:pointer; text-decoration:underline; font-size:14px }
+
+.result{
+  margin:14px 6px 0; padding:12px; border-radius:12px; background:#fff; border:1px solid #eee; display:none;
+}
+.result .hitname{ font-weight:600 }
+.result .tableno{ font-weight:700; padding:.2em .5em; border-radius:8px; background:#f3ebf7; margin-left:6px }
+
+.list{ margin:12px 0 6px; max-height:50vh; overflow:auto; border:1px solid #eee; border-radius:12px; background:#fff }
+.list table{ width:100%; border-collapse:collapse }
+.list th, .list td{ padding:10px 12px; border-bottom:1px solid #f1f1f1 }
+.list th{ position:sticky; top:0; background:#fafafa; font-weight:600; text-align:left }
+
+.footnote{ text-align:center; color:#444; margin:10px 0 0; font-size:12px }
+
+/* Mobile: stack + tighter hero */
+@media (max-width: 760px){
+  .card{ grid-template-columns: 1fr }
+  .invite-side{ height: var(--hero-mobile) }
+  .hero-copy{ text-align:center }
+  .names{ font-size:40px }
+}
+
+/* Desktop: ensure the image truly fills its column height */
+@media (min-width: 761px){
+  .invite-side{ height: auto; min-height: 420px } /* taller feel; adjust if needed */
+}
