@@ -13,6 +13,7 @@ const escapeHtml = s => String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt
 // --- State ------------------------------------------------------------------
 let rows = [];
 let fuse = null;
+let fuseStrict = null; // stricter instance used for longer queries
 
 // --- Boot -------------------------------------------------------------------
 window.addEventListener('DOMContentLoaded', async () => {
@@ -82,6 +83,21 @@ function bootstrapData(data){
       { name: '_arAlt',weight: 0.15 }
     ]
   });
+
+  // Create a stricter Fuse instance for longer queries (more "alike" results)
+  fuseStrict = new Fuse(rows, {
+    includeScore: true,
+    shouldSort: true,
+    minMatchCharLength: 3,
+    threshold: 0.22,      // much stricter — only very close matches
+    distance: 100,
+    ignoreLocation: true,
+    keys: [
+      { name: 'name',  weight: 0.7 },
+      { name: '_norm', weight: 0.2 },
+      { name: '_arAlt',weight: 0.1 }
+    ]
+  });
 }
 
 // --- Search & list rendering -------------------------------------------------
@@ -94,7 +110,11 @@ function handleSearch(query, resultEl, listEl){
     return;
   }
 
-  const hits = fuse ? fuse.search(qn) : [];
+  // Choose a Fuse instance depending on the (normalized) query length.
+  // For longer queries (>=4 chars) use the stricter matcher so results are very alike.
+  const useStrict = qn.length >= 4 && fuseStrict;
+  const searcher = useStrict ? fuseStrict : fuse;
+  const hits = searcher ? searcher.search(qn) : [];
   if(!hits.length){
     resultEl.innerHTML = `<div>No close matches found. Try <button class="linklike" onclick="renderFullList(document.getElementById('list'));">viewing the full list</button>.</div>`;
     resultEl.style.display='block';
