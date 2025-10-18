@@ -2,7 +2,7 @@
   /* Panel split and hero heights */
   --left: 48%;           /* left image width on desktop */
   --right: 52%;          /* right content width on desktop */
-  --hero-mobile: 200px;  /* height of image when stacked on phones */
+  --hero-mobile: clamp(220px, 50vh, 320px);  /* height of image when stacked on phones (responsive clamp) */
   --hero-desktop: 100%;  /* full column fill on desktop */
 
   /* Colors */
@@ -39,8 +39,14 @@ body{
 
 /* LEFT image column: fill completely, no gaps */
 .invite-side{
-  background: url('./assets/bg.jpg') center center / cover no-repeat;
+  /* Use explicit background properties so we can change positioning per breakpoint.
+     On mobile we align the image to the top so important content isn't cropped. */
+  background-image: url('./assets/bg.jpg');
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
   min-height: var(--hero-mobile); /* visible when stacked */
+  background-color: #efe9e6; /* subtle fallback while image loads */
 }
 
 /* RIGHT content */
@@ -93,4 +99,6 @@ input[type="search"]{
 /* Desktop: ensure the image truly fills its column height */
 @media (min-width: 761px){
   .invite-side{ height: auto; min-height: 420px } /* taller feel; adjust if needed */
+  /* On desktop keep the image centered in its column */
+  .invite-side{ background-position: center center; }
 }
