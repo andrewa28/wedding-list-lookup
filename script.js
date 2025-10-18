@@ -68,12 +68,12 @@ function bootstrapData(data){
       };
     });
 
-  // --- very forgiving Fuse setup ---
+  // --- Fuse setup with stricter threshold ---
   fuse = new Fuse(rows, {
     includeScore: true,
     shouldSort: true,
     minMatchCharLength: 2,  // allow short fragments
-    threshold: 0.6,         // 0.6 = loose and forgiving
+    threshold: 0.4,         // 0.4 = stricter matching (was 0.6)
     distance: 200,          // how far apart terms can be and still match
     ignoreLocation: true,   // ignore position in string
     keys: [
@@ -102,14 +102,21 @@ function handleSearch(query, resultEl, listEl){
     return;
   }
 
-  const top = hits[0].item;
+  // Show all matches instead of just the first one
+  const matchesHtml = hits.map(hit => `
+    <div class="match-item">
+      <span class="hitname">${escapeHtml(hit.item.name)}</span> — Table 
+      <span class="tableno">${escapeHtml(hit.item.table || '—')}</span>
+    </div>
+  `).join('');
+  
   resultEl.innerHTML = `
-    <div>Welcome <span class="hitname">${escapeHtml(top.name)}</span> — your table is
-      <span class="tableno">${escapeHtml(top.table || '—')}</span>
+    <div>
+      <div style="margin-bottom: 8px; font-weight: 600;">
+        ${hits.length === 1 ? 'Match found:' : `${hits.length} matches found:`}
+      </div>
+      ${matchesHtml}
     </div>`;
-    // <div style="margin-top:6px; color:#666; font-size:13px">
-    //   (Showing best fuzzy match — keep typing for better accuracy)
-    // </div>`;
   resultEl.style.display='block';
   listEl.hidden = true;
 }

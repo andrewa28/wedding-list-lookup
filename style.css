@@ -72,6 +72,8 @@ input[type="search"]{
 }
 .result .hitname{ font-weight:600 }
 .result .tableno{ font-weight:700; padding:.2em .5em; border-radius:8px; background:#f3ebf7; margin-left:6px }
+.result .match-item{ padding:8px 0; border-bottom:1px solid #f1f1f1 }
+.result .match-item:last-child{ border-bottom:none }
 
 .list{ margin:12px 0 6px; max-height:50vh; overflow:auto; border:1px solid #eee; border-radius:12px; background:#fff }
 .list table{ width:100%; border-collapse:collapse }
